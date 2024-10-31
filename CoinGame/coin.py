@@ -1,6 +1,7 @@
 import os
 import sys
 import pygame
+import cv2
 import random
 from pygame.constants import QUIT
 from collections import deque
@@ -19,6 +20,13 @@ current_path = os.path.dirname(__file__)
 image_path = os.path.join(current_path, "images")
 font_path = os.path.join(current_path, "font")
 background = pygame.transform.scale(pygame.image.load(os.path.join(image_path, "background.png")), (1280, 1280))
+background_animated = os.path.join(image_path, "background.mp4")
+
+# OpenCV 비디오 캡처 생성
+cap = cv2.VideoCapture(background_animated)
+if not cap.isOpened():
+    print("Error: Could not open video file.")
+    sys.exit()  #만약 열리는데 실패했다면 터미널에 실패 표시
 
 #fps 설정
 clock = pygame.time.Clock()
@@ -26,6 +34,20 @@ fps = 60
 
 def get_font(size):
     return pygame.font.Font(os.path.join(font_path, "font.ttf"), size)
+
+def play_mp4_cv():
+    ret, frame = cap.read()  # 비디오 프레임 읽기
+    if not ret or frame is None:
+        cap.set(cv2.CAP_PROP_POS_FRAMES, 0)  # 비디오가 끝나면 처음부터 다시 반복시키기
+        ret, frame = cap.read()
+        if frame is None:
+            print("Error: Could not read video frame.")
+            sys.exit()  # 프로그램 종료
+
+    frame = cv2.resize(frame, (screen_width, screen_height))  # 프레임을 화면 크기에 맞게 조정
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # BGR에서 RGB로 변환
+    frame = pygame.surfarray.make_surface(frame)  # OpenCV 프레임을 Pygame 표면으로 변환
+    return frame
 
 def start(): #시작 메뉴
     running = True
@@ -48,7 +70,10 @@ def start(): #시작 메뉴
                     game()
                     break
 
-        SCREEN.blit(background, (0, 0))
+        frame = play_mp4_cv()
+        SCREEN.blit(pygame.transform.rotate(frame, -90), (0, 0))
+
+        #SCREEN.blit(background, (0, 0))
         SCREEN.blit(TITLE_TEXT, TITLE_RECT)
         PLAY_BUTTON.changeColor(mouse_pos)
         PLAY_BUTTON.update(SCREEN)
@@ -111,7 +136,10 @@ def game(): #게임 화면
         TIME_TEXT = get_font(35).render(time_text, True, "White")
         TIME_RECT = TIME_TEXT.get_rect(center=(timer_pos_x+timer_length/2, timer_pos_y+timer_height/2))                
         
-        SCREEN.blit(background, (0, 0))
+        frame = play_mp4_cv()
+        SCREEN.blit(pygame.transform.rotate(frame, -90), (0, 0))
+        
+        #SCREEN.blit(background, (0, 0))
         #screen.fill((255,255,255))
         stocks[stock_to_show].rect(pygame, SCREEN)
         stocks[stock_to_show].update(pygame, SCREEN)
