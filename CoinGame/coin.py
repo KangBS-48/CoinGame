@@ -32,8 +32,9 @@ if not cap.isOpened():
 clock = pygame.time.Clock()
 fps = 60
 
-def get_font(size):
-    return pygame.font.Font(os.path.join(font_path, "font.ttf"), size)
+def get_font(i, size):
+    fonts = [0, "font.ttf"]
+    return pygame.font.Font(os.path.join(font_path, fonts[i]), size)
 
 def play_mp4_cv():
     ret, frame = cap.read()  # 비디오 프레임 읽기
@@ -52,7 +53,7 @@ def play_mp4_cv():
 def nickname_input():
     nickname = ''
     input_active = True
-    font = get_font(50)
+    font = get_font(1, 50)
 
     while input_active:
         for event in pygame.event.get():
@@ -81,9 +82,9 @@ def nickname_input():
 def start(): #시작 메뉴
     running = True
 
-    TITLE_TEXT = get_font(100).render("COIN GAME", True, "#585391")
+    TITLE_TEXT = get_font(1, 100).render("COIN GAME", True, "#585391")
     TITLE_RECT = TITLE_TEXT.get_rect(center=(640, 150))
-    PLAY_BUTTON = Button(None, (640,360), "PLAY", get_font(75), '#585391', "White")
+    PLAY_BUTTON = Button(None, (640,360), "PLAY", get_font(1, 75), '#585391', "White")
 
     while running:
         clock.tick(fps)
@@ -115,9 +116,9 @@ def game(nickname): #게임 화면
     balance = 100000
 
     #주식
-    stocks = []
-    for i in range(3):  # 3개의 주식 생성
-        stocks.append(Stock(deque(), random.randint(30, 50), random.randint(100, 200), 0))
+    stock_names = [["MK하이닉스", "삼선정자"], ["도기코인", "비츠코인"], ["반짝이는 금", "에메랄드"]]
+    stock_types = ["주식", "코인", "광물"]
+    stocks = [Stock(random.choice(stock_names[i]), stock_types[i], deque(), random.randint(30, 50), random.randint(100, 200), 0) for i in range(3)]
     stock_to_show = 0
     owned_stocks = [0, 0, 0]
 
@@ -133,13 +134,11 @@ def game(nickname): #게임 화면
     button2_pos = (Stock.start_pos_x + button_length*1.5 + button_interval, button_pos_y)
     button3_pos = (Stock.start_pos_x + button_length*2.5 + button_interval*2, button_pos_y)
 
-    stock1_button = Button(None, button1_pos, "Stock1", get_font(30), '#585391', "White")
-    stock2_button = Button(None, button2_pos, "Stock2", get_font(30), '#585391', "White")
-    stock3_button = Button(None, button3_pos, "Stock3", get_font(30), '#585391', "White")
-    stock_buttons = [stock1_button, stock2_button, stock3_button]
+    button_poses = [button1_pos, button2_pos, button3_pos]
+    stock_buttons = [Button(None, button_poses[i], f"{stocks[i].name}", get_font(1, 30), '#585391', "White") for i in range(3)]
 
-    buy_button = Button(None, (100, 600), "BUY", get_font(30), '#28a745', "White")
-    sell_button = Button(None, (300, 600), "SELL", get_font(30), '#dc3545', "White")
+    buy_button = Button(None, (100, 600), "BUY", get_font(1, 30), '#28a745', "White")
+    sell_button = Button(None, (300, 600), "SELL", get_font(1, 30), '#dc3545', "White")
 
     #제한시간 타이머
     time = 60 #제한시간 (단위:s)
@@ -162,8 +161,7 @@ def game(nickname): #게임 화면
                     stock.stock()
             
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                for i in range(3):
-                    btn = stock_buttons[i]
+                for i, btn in enumerate(stock_buttons):
                     if btn.checkForInput(mouse_pos):
                         stock_to_show = i
 
@@ -172,7 +170,6 @@ def game(nickname): #게임 화면
                     if balance >= current_price:
                         balance -= current_price
                         owned_stocks[stock_to_show] += 1
-                        print(stocks[stock_to_show].current_price)
                         print(f"Bought 1 share of Stock {stock_to_show + 1}. New balance: ${balance}")
 
                 if sell_button.checkForInput(mouse_pos):
@@ -182,7 +179,7 @@ def game(nickname): #게임 화면
                         print(f"Sold 1 share of Stock {stock_to_show + 1}. New balance: ${balance}")
         
         time_text = f"{(time//60):02}:{(time%60):02}"
-        TIME_TEXT = get_font(35).render(time_text, True, "White")
+        TIME_TEXT = get_font(1, 35).render(time_text, True, "White")
         TIME_RECT = TIME_TEXT.get_rect(center=(timer_pos_x+timer_length/2, timer_pos_y+timer_height/2))                
         
         frame = play_mp4_cv()
@@ -193,7 +190,7 @@ def game(nickname): #게임 화면
         stocks[stock_to_show].rect(pygame, SCREEN)
         stocks[stock_to_show].update(pygame, SCREEN)
 
-        user_info_text = get_font(35).render(f"Nickname: {nickname} | Balance: ${balance}", True, "White")
+        user_info_text = get_font(1, 35).render(f"Nickname: {nickname} | Balance: ${balance}", True, "White")
         SCREEN.blit(user_info_text, (100, 30))
 
         for b in stock_buttons + [buy_button, sell_button]:
