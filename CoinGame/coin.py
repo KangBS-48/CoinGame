@@ -112,7 +112,7 @@ def start(): #시작 메뉴
 
 def game(nickname): #게임 화면
     running = True
-    balance = 1000
+    balance = 100000
 
     #주식
     stocks = []
@@ -122,7 +122,7 @@ def game(nickname): #게임 화면
     owned_stocks = [0, 0, 0]
 
     STOCK_TIMER = pygame.USEREVENT + 1  #주식 업데이트 타이머
-    pygame.time.set_timer(STOCK_TIMER, 50) #주기 (단위:ms)
+    pygame.time.set_timer(STOCK_TIMER, 500) #주기 (단위:ms)
 
     #주식 전환 버튼
     button_top_margin = 30
@@ -172,6 +172,7 @@ def game(nickname): #게임 화면
                     if balance >= current_price:
                         balance -= current_price
                         owned_stocks[stock_to_show] += 1
+                        print(stocks[stock_to_show].current_price)
                         print(f"Bought 1 share of Stock {stock_to_show + 1}. New balance: ${balance}")
 
                 if sell_button.checkForInput(mouse_pos):
