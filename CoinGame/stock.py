@@ -51,5 +51,4 @@ def change_price(coeff, current, min, max):
     while sum < min or sum > max:
         change_base = random.randrange(-coeff, coeff)
         sum = current + change_base
-
     return change_base
