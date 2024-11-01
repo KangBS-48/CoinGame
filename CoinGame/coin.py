@@ -49,6 +49,35 @@ def play_mp4_cv():
     frame = pygame.surfarray.make_surface(frame)  # OpenCV 프레임을 Pygame 표면으로 변환
     return frame
 
+def nickname_input():
+    nickname = ''
+    input_active = True
+    font = get_font(50)
+
+    while input_active:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    input_active = False
+                elif event.key == pygame.K_BACKSPACE:
+                    nickname = nickname[:-1]
+                else:
+                    nickname += event.unicode
+        
+        SCREEN.blit(background, (0, 0))
+        nickname_text = font.render("Enter your nickname:", True, "White")
+        SCREEN.blit(nickname_text, (screen_width // 2 - nickname_text.get_width() // 2, screen_height // 2 - 50))
+
+        entered_nickname_text = font.render(nickname, True, "White")
+        SCREEN.blit(entered_nickname_text, (screen_width // 2 - entered_nickname_text.get_width() // 2, screen_height // 2 + 20))
+
+        pygame.display.update()
+
+    return nickname
+
 def start(): #시작 메뉴
     running = True
 
@@ -67,7 +96,8 @@ def start(): #시작 메뉴
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if PLAY_BUTTON.checkForInput(mouse_pos):
-                    game()
+                    nickname = nickname_input()
+                    game(nickname)
                     break
 
         frame = play_mp4_cv()
@@ -80,14 +110,16 @@ def start(): #시작 메뉴
         #screen.fill((255,255,255))
         pygame.display.update()
 
-def game(): #게임 화면
+def game(nickname): #게임 화면
     running = True
+    balance = 1000
 
     #주식
     stocks = []
     for i in range(3):  # 3개의 주식 생성
         stocks.append(Stock(deque(), random.randint(30, 50), random.randint(100, 200), 0))
     stock_to_show = 0
+    owned_stocks = [0, 0, 0]
 
     STOCK_TIMER = pygame.USEREVENT + 1  #주식 업데이트 타이머
     pygame.time.set_timer(STOCK_TIMER, 50) #주기 (단위:ms)
@@ -105,6 +137,9 @@ def game(): #게임 화면
     stock2_button = Button(None, button2_pos, "Stock2", get_font(30), '#585391', "White")
     stock3_button = Button(None, button3_pos, "Stock3", get_font(30), '#585391', "White")
     stock_buttons = [stock1_button, stock2_button, stock3_button]
+
+    buy_button = Button(None, (100, 600), "BUY", get_font(30), '#28a745', "White")
+    sell_button = Button(None, (300, 600), "SELL", get_font(30), '#dc3545', "White")
 
     #제한시간 타이머
     time = 60 #제한시간 (단위:s)
@@ -131,6 +166,19 @@ def game(): #게임 화면
                     btn = stock_buttons[i]
                     if btn.checkForInput(mouse_pos):
                         stock_to_show = i
+
+                if buy_button.checkForInput(mouse_pos):
+                    current_price = stocks[stock_to_show].current_price
+                    if balance >= current_price:
+                        balance -= current_price
+                        owned_stocks[stock_to_show] += 1
+                        print(f"Bought 1 share of Stock {stock_to_show + 1}. New balance: ${balance}")
+
+                if sell_button.checkForInput(mouse_pos):
+                    if owned_stocks[stock_to_show] > 0:
+                        balance += stocks[stock_to_show].current_price
+                        owned_stocks[stock_to_show] -= 1
+                        print(f"Sold 1 share of Stock {stock_to_show + 1}. New balance: ${balance}")
         
         time_text = f"{(time//60):02}:{(time%60):02}"
         TIME_TEXT = get_font(35).render(time_text, True, "White")
@@ -143,7 +191,11 @@ def game(): #게임 화면
         #screen.fill((255,255,255))
         stocks[stock_to_show].rect(pygame, SCREEN)
         stocks[stock_to_show].update(pygame, SCREEN)
-        for b in stock_buttons:
+
+        user_info_text = get_font(35).render(f"Nickname: {nickname} | Balance: ${balance}", True, "White")
+        SCREEN.blit(user_info_text, (100, 30))
+
+        for b in stock_buttons + [buy_button, sell_button]:
             b.changeColor(mouse_pos)
             b.update(SCREEN)
         pygame.draw.rect(SCREEN, '#585391', (timer_pos_x, timer_pos_y, timer_length, timer_height))
