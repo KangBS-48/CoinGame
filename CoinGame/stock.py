@@ -18,6 +18,7 @@ class Stock():
         self.price_multiplier = price_multiplier
         self.stock_pointer = self.mid
         self.pointer = pointer
+        self.current_price = self.mid
 
     def stock(self):
         price_diff = change_price(self.change_coeff, self.stock_pointer, self.start_pos_y, self.end_pos_y)
@@ -32,10 +33,9 @@ class Stock():
             self.pointer += 1
 
     def update(self, pygame, screen):
-        for i in range(len(self.deq)): #그래프 그리기
-            line = self.deq[i]
-            pos_x = self.start_pos_x + i*self.line_interval
-            pygame.draw.line(screen, line[2], (pos_x, line[0]), (pos_x, line[0]+line[1]), self.line_width)
+        for i, line in enumerate(self.deq):
+            pos_x = self.start_pos_x + i * self.line_interval
+            pygame.draw.line(screen, line[2], (pos_x, line[0]), (pos_x, line[0] + line[1]), self.line_width)
 
     def rect(self, pygame, screen):
         pygame.draw.rect(screen, (255,255,255), (self.start_pos_x-self.border_x, self.start_pos_y-self.border_y, 
