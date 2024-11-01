@@ -27,6 +27,7 @@ class Stock():
         else:
             self.deq.append((self.stock_pointer, price_diff, (255,0,0)))
         self.stock_pointer += price_diff
+        self.current_price = (self.end_pos_y - self.stock_pointer) * self.price_multiplier
         if self.start_pos_x + self.pointer*self.line_interval > self.end_pos_x:
             self.deq.popleft()
         else:
