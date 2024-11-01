@@ -12,7 +12,9 @@ class Stock():
     line_width = 5
     line_interval = line_width + 1
 
-    def __init__(self, deq: deque, change_coeff, price_multiplier, pointer):
+    def __init__(self, name, type, deq: deque, change_coeff, price_multiplier, pointer):
+        self.name = name
+        self.type = type
         self.deq = deq
         self.change_coeff = change_coeff
         self.price_multiplier = price_multiplier
